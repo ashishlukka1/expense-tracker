@@ -4,7 +4,7 @@ import Home from "../components/Home";
 import Profile from "../components/Profile";
 import List from "../components/List";
 import ProfileExpand from "../components/ProfileExpand";
-import { Scrollbars } from "react-custom-scrollbars";
+import { Scrollbars } from "react-custom-scrollbars-2";
 
 export default function Main(props) {
   const navigate = useNavigate();

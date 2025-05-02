@@ -14,7 +14,7 @@ import MainSpendAnalysis from "./Pages/MainSpendAnalysis";
 import MainDaily from "./Pages/MainDaily";
 import Developers from "./Pages/Aboutus";
 import ConfirmDelete from "./Pages/ConfirmDelete";
-import { Scrollbars } from "react-custom-scrollbars";
+import { Scrollbars } from "react-custom-scrollbars-2";
 import Contact from "./Pages/contactUs";
 
 Modal.setAppElement("#root");

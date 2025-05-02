@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ReactLoading from "react-loading";
 
 export default function Signup(props) {
   const [isLoading, setIsLoading] = useState(false);
@@ -12,173 +11,249 @@ export default function Signup(props) {
     confirmPassword: "",
   });
 
-  const [error, setError] = useState({
+  const [errors, setErrors] = useState({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
 
-  const handleSignup = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError({
+  // Client-side validation before submission
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors = {
       name: "",
       email: "",
-      passowrd: "",
+      password: "",
       confirmPassword: "",
-    });
+    };
 
-    const res = await fetch("/user/signup", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(user),
-    });
-    const data = await res.json();
-    console.log(data);
-    if (data.errors) {
-      setError(data.errors);
-      setIsLoading(false);
-    } else {
-      setIsLoading(false);
-      props.closeModalSignup();
-      navigate("/dashboard");
+    if (!user.name.trim()) {
+      newErrors.name = "Required";
+      isValid = false;
+    }
+
+    if (!user.email.trim()) {
+      newErrors.email = "Required";
+      isValid = false;
+    } else if (!/\S+@\S+\.\S+/.test(user.email)) {
+      newErrors.email = "Invalid email";
+      isValid = false;
+    }
+
+    if (!user.password) {
+      newErrors.password = "Required";
+      isValid = false;
+    } else if (user.password.length < 6) {
+      newErrors.password = "Min 6 characters";
+      isValid = false;
+    }
+
+    if (user.password !== user.confirmPassword) {
+      newErrors.confirmPassword = "Passwords don't match";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setUser(prev => ({ ...prev, [name]: value }));
+    
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: "" }));
     }
   };
+
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      const res = await fetch("/user/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(user),
+      });
+      
+      const data = await res.json();
+      
+      if (data.errors) {
+        setErrors(data.errors);
+      } else {
+        props.closeModalSignup();
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      setErrors({
+        ...errors,
+        general: "An error occurred. Please try again."
+      });
+      console.error("Signup error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <div>
-      <div className="p-6 bg-rp-black text-white rounded-xl font-lexend">
-        <h1 className="font-bold text-2xl ">Sign Up</h1>
-        <p className="">Please fill this to create an account</p>
-        <hr className="my-4 "></hr>
-        <div className="grid grid-cols-12">
-          <label
-            htmlFor="email"
-            className="font-bold flex items-center col-span-4"
-          >
-            Name
-          </label>
-          <input
-            value={user.name}
-            onChange={(e) => {
-              const tempUser = { ...user };
-              tempUser.name = e.target.value;
-              setUser(tempUser);
-            }}
-            type="text"
-            placeholder="Enter Name"
-            className="p-2 m-2 inline-block outline-none bg-jp-black col-span-8 rounded-sm placeholder-rp-yellow"
-          />
-          <span className="text-sm text-red-500 col-start-5 col-span-8">
-            {error.name}
-          </span>
-        </div>
-        <div className="grid grid-cols-12">
-          <label
-            htmlFor="email"
-            className="font-bold flex items-center col-span-4"
-          >
-            Email
-          </label>
-          <input
-            value={user.email}
-            onChange={(e) => {
-              const tempUser = { ...user };
-              tempUser.email = e.target.value;
-              setUser(tempUser);
-            }}
-            type="text"
-            placeholder="Enter Email"
-            className="p-2 m-2 inline-block outline-none  col-span-8 bg-jp-black rounded-sm placeholder-rp-yellow"
-          />
-          <span className="text-sm text-red-500 col-start-5 col-span-8">
-            {error.email}
-          </span>
-        </div>
+    <div className="font-lexend">
+      <div className="p-4 bg-rp-black text-white rounded-lg">
+        <h1 className="font-bold text-xl">Sign Up</h1>
+        <p className="text-gray-300 text-xs">Create your account</p>
+        
+        <hr className="border-gray-700 my-2"></hr>
+        
+        {errors.general && (
+          <div className="mb-2 p-2 bg-red-900/20 border border-red-500 rounded text-red-400 text-xs">
+            {errors.general}
+          </div>
+        )}
+        
+        <form onSubmit={handleSignup} className="text-sm">
+          <div className="space-y-2">
+            {/* Name Field */}
+            <div className="grid grid-cols-12 gap-1 items-center">
+              <label htmlFor="name" className="font-medium col-span-4">
+                Name
+              </label>
+              <div className="col-span-8">
+                <input
+                  id="name"
+                  name="name"
+                  value={user.name}
+                  onChange={handleChange}
+                  type="text"
+                  placeholder="Enter name"
+                  className={`w-full p-2 bg-jp-black rounded-md outline-none ${
+                    errors.name ? "ring-1 ring-red-500" : "focus:ring-1 focus:ring-rp-yellow"
+                  } placeholder-gray-500 text-sm`}
+                />
+                {errors.name && (
+                  <span className="text-xs text-red-500 mt-1 block">
+                    {errors.name}
+                  </span>
+                )}
+              </div>
+            </div>
+            
+            {/* Email Field */}
+            <div className="grid grid-cols-12 gap-1 items-center">
+              <label htmlFor="email" className="font-medium col-span-4">
+                Email
+              </label>
+              <div className="col-span-8">
+                <input
+                  id="email"
+                  name="email"
+                  value={user.email}
+                  onChange={handleChange}
+                  type="email"
+                  placeholder="Enter email"
+                  className={`w-full p-2 bg-jp-black rounded-md outline-none ${
+                    errors.email ? "ring-1 ring-red-500" : "focus:ring-1 focus:ring-rp-yellow"
+                  } placeholder-gray-500 text-sm`}
+                />
+                {errors.email && (
+                  <span className="text-xs text-red-500 mt-1 block">
+                    {errors.email}
+                  </span>
+                )}
+              </div>
+            </div>
 
-        <div className="grid grid-cols-12 ">
-          <label
-            htmlFor="password"
-            className="font-bold flex items-center col-span-4"
-          >
-            Password
-          </label>
-          <input
-            value={user.password}
-            onChange={(e) => {
-              const tempUser = { ...user };
-              tempUser.password = e.target.value;
-              setUser(tempUser);
-            }}
-            type="password"
-            placeholder="Enter Password"
-            name="password"
-            className="p-2 m-2 inline-block outline-none  col-span-8 bg-jp-black rounded-sm placeholder-rp-yellow"
-          ></input>
-          <span className="text-sm text-red-500 col-start-5 col-span-8">
-            {error.password}
-          </span>
-        </div>
+            {/* Password Field */}
+            <div className="grid grid-cols-12 gap-1 items-center">
+              <label htmlFor="password" className="font-medium col-span-4">
+                Password
+              </label>
+              <div className="col-span-8">
+                <input
+                  id="password"
+                  name="password"
+                  value={user.password}
+                  onChange={handleChange}
+                  type="password"
+                  placeholder="Password"
+                  className={`w-full p-2 bg-jp-black rounded-md outline-none ${
+                    errors.password ? "ring-1 ring-red-500" : "focus:ring-1 focus:ring-rp-yellow"
+                  } placeholder-gray-500 text-sm`}
+                />
+                {errors.password && (
+                  <span className="text-xs text-red-500 mt-1 block">
+                    {errors.password}
+                  </span>
+                )}
+              </div>
+            </div>
 
-        <div className="grid grid-cols-12">
-          <label
-            htmlFor="confirm-password"
-            className="font-bold flex items-center col-span-4"
-          >
-            Confirm Password
-          </label>
-          <input
-            value={user.confirmPassword}
-            onChange={(e) => {
-              const tempUser = { ...user };
-              tempUser.confirmPassword = e.target.value;
-              setUser(tempUser);
-            }}
-            type="password"
-            placeholder="Confirm Password"
-            name="Confirm-Password"
-            className="p-2 m-2 inline-block outline-none bg-jp-black col-span-8  rounded-sm placeholder-rp-yellow"
-          ></input>
-          <span className="text-sm text-red-500 col-start-5 col-span-8">
-            {error.confirmPassword}
-          </span>
-        </div>
+            {/* Confirm Password Field */}
+            <div className="grid grid-cols-12 gap-1 items-center">
+              <label htmlFor="confirmPassword" className="font-medium col-span-4">
+                Confirm
+              </label>
+              <div className="col-span-8">
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  value={user.confirmPassword}
+                  onChange={handleChange}
+                  type="password"
+                  placeholder="Confirm password"
+                  className={`w-full p-2 bg-jp-black rounded-md outline-none ${
+                    errors.confirmPassword ? "ring-1 ring-red-500" : "focus:ring-1 focus:ring-rp-yellow"
+                  } placeholder-gray-500 text-sm`}
+                />
+                {errors.confirmPassword && (
+                  <span className="text-xs text-red-500 mt-1 block">
+                    {errors.confirmPassword}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
 
-        <p className="">
-          By creating an account you agree to our{" "}
-          <a className="text-rp-yellow">terms and conditions</a>
-        </p>
-        <div className="mt-4">
-          {isLoading ? (
-            <ReactLoading
-              type="bubbles"
-              color="#F5A302"
-              height={50}
-              width={50}
-            />
-          ) : (
-            <button
-              onClick={handleSignup}
-              className="font-bold p-3 rounded-xl border-2 border-rp-yellow text-rp-yellow hover:border-rp-black hover:text-rp-black hover:bg-rp-yellow hover:scale-110 transition delay-150 duration-200"
-            >
-              Sign Up
-            </button>
-          )}
-        </div>
-        <span className="flex justify-center py-2">
-          <span className="pr-1">Already have an Account, </span>
-          <span
-            className="text-rp-yellow cursor-pointer"
+          <p className="text-xs text-gray-300 mt-3 mb-3">
+            By creating an account you agree to our{" "}
+            <a className="text-rp-yellow hover:underline cursor-pointer">terms</a>
+          </p>
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full font-bold p-2 rounded-md border border-rp-yellow text-rp-yellow hover:bg-rp-yellow hover:text-rp-black transition-all duration-200 flex justify-center items-center text-sm"
+          >
+            {isLoading ? (
+              <div className="flex items-center">
+                <div className="animate-spin mr-1 h-3 w-3 border-t-2 border-b-2 border-current rounded-full"></div>
+                <span>Processing...</span>
+              </div>
+            ) : (
+              "Sign Up"
+            )}
+          </button>
+        </form>
+
+        <div className="text-center mt-3 text-xs">
+          <span className="text-gray-300">Already have an account?</span>{" "}
+          <button
+            className="text-rp-yellow hover:underline"
             onClick={() => {
               props.closeModalSignup();
               props.openModalLogin();
             }}
           >
             Log In
-          </span>
-        </span>
+          </button>
+        </div>
       </div>
     </div>
   );

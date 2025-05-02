@@ -3,7 +3,7 @@ import Analysis from "../components/Analysis";
 import List from "../components/List";
 import Profile from "../components/Profile";
 import ProfileExpand from "../components/ProfileExpand";
-import { Scrollbars } from "react-custom-scrollbars";
+import { Scrollbars } from "react-custom-scrollbars-2";
 
 export default function MainAnalysis(props) {
   const [viewProfile, setViewProfile] = useState("hidden");

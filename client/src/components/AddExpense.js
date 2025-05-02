@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DatePicker2 from "./DatePicker2";
 import ReactLoading from "react-loading";
-import { Scrollbars } from "react-custom-scrollbars";
+import { Scrollbars } from "react-custom-scrollbars-2";
 
 const AddExpense = (props) => {
   const [isLoading, setIsLoading] = useState(false);

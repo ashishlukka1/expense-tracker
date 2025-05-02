@@ -21,7 +21,7 @@ export default function Profile({ setViewProfile }) {
 
   return (
     <div
-      className="lg:flex lg:block hidden justify-end mt-4 items-center mr-10 cursor-pointer w-fit ml-auto hover:scale-110 duration-100 ease-out"
+      className="lg:flex lg:block hidden justify-end mt-4 items-center mr-10 cursor-pointer w-fit ml-auto"
       onMouseEnter={() => {
         setViewProfile("block");
       }}
